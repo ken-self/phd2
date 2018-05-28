@@ -180,12 +180,17 @@ wxCAPTION | wxCLOSE_BOX | wxMINIMIZE_BOX | wxSYSTEM_MENU | wxTAB_TRAVERSAL | wxF
     // Fullsize is easier but the camera simulator does not set this.
 //    wxSize camsize = pCamera->FullSize;
     m_camWidth = pCamera->FullSize.GetWidth() == 0 ? xpx: pCamera->FullSize.GetWidth();
-
+    SetCamAngle();
+/*
     m_camAngle = 0.0;
     double camAngle_rad = 0.0;
     m_flip = false;
     if (pMount && pMount->IsConnected() && pMount->IsCalibrated())
     {
+        // camAngle depends on the sideofPier at any time.
+        // Note that sideOfPier is a known misnomer. It actually indicates the pointing status
+        // which in turn is just the dec positioning of the mount given that a given dec would have two marked positions
+        // on the setting circle if there were one.
         camAngle_rad = pMount->xAngle();
         Debug.AddLine(wxString::Format("StaticPA: Camera angle %.1f", degrees(camAngle_rad)));
         wxString prefix = "/" + pMount->GetMountClassName() + "/calibration/";
@@ -200,6 +205,7 @@ wxCAPTION | wxCLOSE_BOX | wxMINIMIZE_BOX | wxSYSTEM_MENU | wxTAB_TRAVERSAL | wxF
         }
         m_camAngle = degrees(camAngle_rad);
     }
+*/
     // RA and Dec in J2000.0
     c_SthStars = {
         Star("A: sigma Oct", 317.19908, -88.9564, 4.3),
@@ -828,7 +834,7 @@ PHD_Point StaticPaToolWin::Radec2Px(const PHD_Point& radec)
     // Convert dec to pixel radius
     double r = (90.0 - fabs(radec.Y)) * 3600 / m_pxScale;
 
-    // Rotate by calibration angle and HA f object taking into account mount rotation (HA)
+    // Rotate by calibration angle and HA of object taking into account mount rotation (HA)
     double ra_hrs, dec_deg, ra_deg, st_hrs;
     ra_deg = 0.0;
     if (pPointingSource && !pPointingSource->GetCoordinates(&ra_hrs, &dec_deg, &st_hrs))
@@ -1319,5 +1325,35 @@ void StaticPaToolWin::CreateStarTemplate(wxDC& dc, const wxPoint& m_currPt)
     return;
 }
 
+void StaticPaToolWin::SetCamAngle()
+{
+    m_camAngle = 0.0;
+    double l_camAngle = 0.0;
+//    m_flip = false;
+    if (pMount && pMount->IsConnected() && pMount->IsCalibrated())
+    {
+        // Get the calibration angle based on the pointing state
+        // We can normalise it to a BeyondPole state (pierSide = pierWest - looking east) since we will be slewing West
+        // In the north RA is +ve clockwise and in BeyondPole state
+        // In the south it is +ve counter-clockwise
+        //
+        const Calibration cal = pMount->MountCal(); // from Mount
+        //    Calibration cal2;
+        //    pMount->GetLastCalibration(&cal2); // from profile
+        // camAngle depends on the sideofPier at any time.
+        // Note that sideOfPier is a known misnomer. It actually indicates the pointing status
+        // which in turn is just the dec positioning of the mount given that a given dec would have two marked positions
+        // on the setting circle if there were one.
+        l_camAngle = degrees(cal.xAngle);
+        Debug.AddLine(wxString::Format("StaticPA: Camera angle(deg) %.1f", l_camAngle));
+        Debug.AddLine(wxString::Format("StaticPA: calPierSide %s", pMount->PierSideStr(cal.pierSide)));
+        if (cal.pierSide == PIER_SIDE_EAST)
+        {
+            l_camAngle += 180.0;
+            Debug.AddLine(wxString::Format("StaticPA: Flipped Camera angle"));
+        }
+        m_camAngle = norm(l_camAngle, 0, 360);
+    }
+}
 
 

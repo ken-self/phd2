@@ -180,33 +180,23 @@ wxCAPTION | wxCLOSE_BOX | wxMINIMIZE_BOX | wxSYSTEM_MENU | wxTAB_TRAVERSAL | wxF
     // Fullsize is easier but the camera simulator does not set this.
 //    wxSize camsize = pCamera->FullSize;
     m_camWidth = pCamera->FullSize.GetWidth() == 0 ? xpx: pCamera->FullSize.GetWidth();
-    SetCamAngle();
-/*
-    m_camAngle = 0.0;
-    double camAngle_rad = 0.0;
-    m_flip = false;
-    if (pMount && pMount->IsConnected() && pMount->IsCalibrated())
-    {
-        // camAngle depends on the sideofPier at any time.
-        // Note that sideOfPier is a known misnomer. It actually indicates the pointing status
-        // which in turn is just the dec positioning of the mount given that a given dec would have two marked positions
-        // on the setting circle if there were one.
-        camAngle_rad = pMount->xAngle();
-        Debug.AddLine(wxString::Format("StaticPA: Camera angle %.1f", degrees(camAngle_rad)));
-        wxString prefix = "/" + pMount->GetMountClassName() + "/calibration/";
-        int ipier = pConfig->Profile.GetInt(prefix + "pierSide", PIER_SIDE_UNKNOWN);
-        PierSide calPierSide = ipier == PIER_SIDE_EAST ? PIER_SIDE_EAST : ipier == PIER_SIDE_WEST ? PIER_SIDE_WEST : PIER_SIDE_UNKNOWN;
-        PierSide currPierSide = pPointingSource->SideOfPier();
-        Debug.AddLine(wxString::Format("StaticPA: calPierSide %s; currPierSide %s", pMount->PierSideStr(calPierSide), pMount->PierSideStr(currPierSide)));
-        if (currPierSide != calPierSide  && currPierSide != PIER_SIDE_UNKNOWN)
-        {
-            m_flip =  true;
-            Debug.AddLine(wxString::Format("StaticPA: Flipped Camera angle"));
-        }
-        m_camAngle = degrees(camAngle_rad);
-    }
-*/
-    // RA and Dec in J2000.0
+	m_camAngle = 0.0;
+	double l_camAngle = 0.0;
+	if (pMount && pMount->IsConnected() && pMount->IsCalibrated())
+	{
+		// Get the calibration angle and the pointing state used
+		// Normalise it to a BeyondPole state (pierSide = pierWest - looking east) since we will be slewing West
+		const Calibration cal = pMount->MountCal(); // from Mount
+		l_camAngle = degrees(cal.xAngle);
+		Debug.AddLine(wxString::Format("StaticPA: Cal Camera angle(deg) %.1f; PierSide %s", l_camAngle, pMount->PierSideStr(cal.pierSide)));
+		if (cal.pierSide == PIER_SIDE_EAST)
+		{
+			l_camAngle += 180.0;
+		}
+		m_camAngle = norm(l_camAngle, 0, 360);
+	}
+	Debug.AddLine(wxString::Format("StaticPA: Using Camera angle(deg) %.1f", m_camAngle));
+	// RA and Dec in J2000.0
     c_SthStars = {
         Star("A: sigma Oct", 317.19908, -88.9564, 4.3),
         Star("B: HD99828", 165.91797, -89.2392, 7.5),
@@ -1324,36 +1314,4 @@ void StaticPaToolWin::CreateStarTemplate(wxDC& dc, const wxPoint& m_currPt)
     dc.DrawLine(160, 120, 160-m_currPt.x, 120-m_currPt.y);
     return;
 }
-
-void StaticPaToolWin::SetCamAngle()
-{
-    m_camAngle = 0.0;
-    double l_camAngle = 0.0;
-//    m_flip = false;
-    if (pMount && pMount->IsConnected() && pMount->IsCalibrated())
-    {
-        // Get the calibration angle based on the pointing state
-        // We can normalise it to a BeyondPole state (pierSide = pierWest - looking east) since we will be slewing West
-        // In the north RA is +ve clockwise and in BeyondPole state
-        // In the south it is +ve counter-clockwise
-        //
-        const Calibration cal = pMount->MountCal(); // from Mount
-        //    Calibration cal2;
-        //    pMount->GetLastCalibration(&cal2); // from profile
-        // camAngle depends on the sideofPier at any time.
-        // Note that sideOfPier is a known misnomer. It actually indicates the pointing status
-        // which in turn is just the dec positioning of the mount given that a given dec would have two marked positions
-        // on the setting circle if there were one.
-        l_camAngle = degrees(cal.xAngle);
-        Debug.AddLine(wxString::Format("StaticPA: Camera angle(deg) %.1f", l_camAngle));
-        Debug.AddLine(wxString::Format("StaticPA: calPierSide %s", pMount->PierSideStr(cal.pierSide)));
-        if (cal.pierSide == PIER_SIDE_EAST)
-        {
-            l_camAngle += 180.0;
-            Debug.AddLine(wxString::Format("StaticPA: Flipped Camera angle"));
-        }
-        m_camAngle = norm(l_camAngle, 0, 360);
-    }
-}
-
 

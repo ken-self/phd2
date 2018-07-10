@@ -342,7 +342,7 @@ wxCAPTION | wxCLOSE_BOX | wxMINIMIZE_BOX | wxSYSTEM_MENU | wxTAB_TRAVERSAL | wxF
     m_hourAngleSpin = new wxSpinCtrlDouble(this, ID_HA, wxEmptyString, wxDefaultPosition, wxSize(10, -1), wxSP_ARROW_KEYS | wxSP_WRAP, 0.0, 24.0, m_ha/15.0, 0.1);
     m_hourAngleSpin->SetToolTip(_("Set your scope hour angle"));
     gbSizer->Add(m_hourAngleSpin, wxGBPosition(gridRow, 0), wxGBSpan(1, 1), wxEXPAND | wxALL | wxFIXED_MINSIZE, 5);
-    m_hourAngleSpin->SetDigits(1);
+    m_hourAngleSpin->SetDigits(2);
 
     wxArrayString hemi;
     hemi.Add(_("North"));

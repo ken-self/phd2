@@ -691,20 +691,23 @@ bool CameraToupTek::Capture(int duration, usImage& img, int options, const wxRec
     Debug.Write("TOUPTEK: capture: Start\n");
     m_cam.StartCapture();
 
-    //Debug.Write("TOUPTEK: capture: trigger\n");
+    Debug.Write("TOUPTEK: capture: trigger\n");
     if (FAILED(hr = Toupcam_Trigger(m_cam.m_h, 1)))
         Debug.Write(wxString::Format("TOUPTEK: Toupcam_Trigger(1) failed with status 0x%x\n", hr));
 
     // "The timeout is recommended for not less than (Exposure Time * 102% + 8 Seconds)."
+    int nwait=0;
     CameraWatchdog watchdog(duration * 102 / 100, GetTimeoutMs());
 
     { // lock scope
         wxMutexLocker lck(m_cam.m_lock);
         while (m_cam.m_captureResult == 0 && !WorkerThread::InterruptRequested() && !watchdog.Expired())
         {
+            nwait++;
             m_cam.m_cond.WaitTimeout(200);
         }
     } // lock scope
+    Debug.Write(wxString::Format("TOUPTEK: capture after %d waits with status 0x%x\n", nwait, m_cam.m_captureResult));
 
     if (m_cam.m_captureResult != TOUPCAM_EVENT_IMAGE)
     {

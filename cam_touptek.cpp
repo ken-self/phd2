@@ -213,7 +213,7 @@ struct ToupCam
 
     void StartCapture()
     {
-        Debug.Write("TOUPTEK: startcapture m_started=%d\n", m_started);
+        Debug.Write(wxString::Format("TOUPTEK: startcapture m_started=%d\n", m_started));
         if (m_started)
             return;
 

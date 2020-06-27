@@ -193,6 +193,7 @@ struct ToupCam
         switch (event)
         {
         case TOUPCAM_EVENT_IMAGE:
+            Debug.Write(wxString::Format("TOUPTEK: cam event EVENT_IMAGE 0x%x\n", event));
         case TOUPCAM_EVENT_ERROR:
         case TOUPCAM_EVENT_DISCONNECTED:
         case TOUPCAM_EVENT_TIMEOUT:
@@ -215,7 +216,7 @@ struct ToupCam
         if (m_started)
             return;
 
-        //Debug.Write("TOUPTEK: startcapture\n");
+        Debug.Write("TOUPTEK: startcapture\n");
 
         HRESULT hr;
         if (FAILED(hr = Toupcam_StartPullModeWithCallback(m_h, &CamEventCb, this)))
@@ -740,7 +741,7 @@ bool CameraToupTek::Capture(int duration, usImage& img, int options, const wxRec
         return true;
     }
 
-    //Debug.Write("TOUPTEK: capture: image ready\n");
+    Debug.Write("TOUPTEK: capture: image ready\n");
 
     void *buf;
     wxSize sz;

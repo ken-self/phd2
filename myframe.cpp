@@ -1650,7 +1650,7 @@ void MyFrame::ScheduleExposure()
     const wxRect& subframe =
         m_singleExposure.enabled ? m_singleExposure.subframe : pGuider->GetBoundingBox();
 
-    Debug.Write(wxString::Format("ScheduleExposure(%d,%x,%d) exposurePending=%d\n",
+    Debug.Write(wxString::Format("MyFrame::ScheduleExposure(%d,%x,%d) exposurePending=%d\n",
         exposureDuration, exposureOptions, !subframe.IsEmpty(), m_exposurePending));
 
     assert(wxThread::IsMain()); // m_exposurePending only updated in main thread

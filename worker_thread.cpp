@@ -149,7 +149,7 @@ bool WorkerThread::HandleExpose(EXPOSE_REQUEST *req)
 
         if (pCamera->HasNonGuiCapture())
         {
-            Debug.Write(wxString::Format("Handling exposure in thread, d=%d o=%x r=(%d,%d,%d,%d)\n", req->exposureDuration,
+            Debug.Write(wxString::Format("WorkerThread::HandleExpose Handling exposure in thread, d=%d o=%x r=(%d,%d,%d,%d)\n", req->exposureDuration,
                                          req->options, req->subframe.x, req->subframe.y, req->subframe.width, req->subframe.height));
 
             if (GuideCamera::Capture(pCamera, req->exposureDuration, *req->pImage, req->options, req->subframe))
@@ -176,7 +176,7 @@ bool WorkerThread::HandleExpose(EXPOSE_REQUEST *req)
             req->pSemaphore = NULL;
         }
 
-        Debug.Write("Exposure complete\n");
+        Debug.Write("WorkerThread::HandleExpose Exposure complete\n");
 
         if (!bError)
         {

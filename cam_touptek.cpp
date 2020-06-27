@@ -213,10 +213,10 @@ struct ToupCam
 
     void StartCapture()
     {
+        Debug.Write("TOUPTEK: startcapture m_started=%d\n", m_started);
         if (m_started)
             return;
 
-        Debug.Write("TOUPTEK: startcapture\n");
 
         HRESULT hr;
         if (FAILED(hr = Toupcam_StartPullModeWithCallback(m_h, &CamEventCb, this)))
@@ -688,6 +688,7 @@ bool CameraToupTek::Capture(int duration, usImage& img, int options, const wxRec
         m_cam.m_captureResult = 0;
     }
 
+    Debug.Write("TOUPTEK: capture: Start\n");
     m_cam.StartCapture();
 
     //Debug.Write("TOUPTEK: capture: trigger\n");
